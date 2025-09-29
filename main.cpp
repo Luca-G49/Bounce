@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
 
     // Timer setup
     sf::Clock clock;
+    constexpr float interval {0.05f}; // every 50 milliseconds
 
     while (window.isOpen())
     {
@@ -53,7 +54,16 @@ int main(int argc, char *argv[])
             }
         }
 
+        // Timer based movement
+        if (clock.getElapsedTime().asSeconds() > interval)
+        {
+            v += g * scaling_factor * interval; // v = v0 + g * t
+            if ((ball.getPosition().y + ball_radius * 2) < 600.0f){
+                ball.move(0.0,v * interval);
+            }
 
+            clock.restart();
+        }
 
         window.clear(background_color);
         window.draw(ball);
