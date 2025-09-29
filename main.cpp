@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     sf::RectangleShape base(sf::Vector2f(width, 50));
     base.setFillColor(sf::Color::Red);
-    base.setPosition(0,550);
+    base.setPosition(0, 550);
 
     sf::CircleShape ball(ball_radius);
     ball.setFillColor(ball_color);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     // Timer setup
     sf::Clock clock;
-    constexpr float interval {1.0f}; // every 50 milliseconds
+    constexpr float interval{1.0f}; // every 50 milliseconds
 
     while (window.isOpen())
     {
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         }
 
         // Timer based movement
-        if (clock.getElapsedTime().asMilliseconds() > interval)
+        /*if (clock.getElapsedTime().asMilliseconds() > interval)
         {
             v += g * scaling_factor * interval / 1000; // v = v0 + g * t
             if ((ball.getPosition().y + ball_radius * 2) < 550.0f){
@@ -67,7 +67,17 @@ int main(int argc, char *argv[])
             }
 
             clock.restart();
+        }*/
+
+        int dt = clock.getElapsedTime().asMicroseconds();
+
+        if ((ball.getPosition().y + ball_radius * 2) < 550.0f)
+        {
+            v += g * dt; // v = v0 + g * t
+            ball.move(0.0, v * dt / scaling_factor);
         }
+
+        clock.restart();
 
         window.clear(background_color);
         window.draw(ball);
