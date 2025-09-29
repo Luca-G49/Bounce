@@ -1,0 +1,49 @@
+#include <iostream>
+#include <cmath>
+
+int main() {
+    double h = 10.0; // altezza iniziale in metri
+    double g = 9.81; // accelerazione di gravità in m/s²
+    double e = 0.8;   // coefficiente di restituzione
+    double v = 0.0;   // velocità iniziale
+    double dt = 0.01; // intervallo di tempo per la simulazione
+    double t = 0.0;   // tempo totale
+
+    // Fattore di scala: 1 metro = 100 pixel
+    double scaleFactor = 100.0;
+
+    std::cout << "Simulazione del rimbalzo della palla:\n";
+    std::cout << "Tempo (s)\tAltezza (m)\tVelocità (pixel/s)\n";
+
+    while (h > 0.01) { // continua finché l'altezza è significativa
+        // Calcola la velocità durante la caduta
+        v += g * dt; // v = v0 + g * t
+
+        // Aggiorna l'altezza
+        h -= v * dt; // h = h - v * dt
+
+        // Controlla se la palla colpisce il suolo
+        if (h <= 0) {
+            // Rimbalza
+            h = e * h; // nuova altezza (opzionale, non necessaria per il movimento)
+            v = -e * v; // inverte la velocità e la moltiplica per il coefficiente di restituzione
+        }
+
+        // Converti la velocità in pixel/s
+        double velocityInPixels = v * scaleFactor;
+
+        // Stampa i valori attuali
+        std::cout << t << "\t\t" << h << "\t\t" << velocityInPixels << "\n";
+
+        // Se la palla è sopra il suolo, aggiorna l'altezza
+        if (h > 0) {
+            // Durante la risalita, la velocità diminuisce
+            v -= g * dt; // v = v - g * t
+        }
+
+        t += dt; // incrementa il tempo
+    }
+
+    std::cout << "La palla ha smesso di rimbalzare." << std::endl;
+    return 0;
+}
