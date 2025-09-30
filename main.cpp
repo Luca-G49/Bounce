@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     sf::Color background_color{sf::Color::Black};
 
     const double g{9.8};          // Gravitational acceleration [m/s²]
-    const double e{0.5};          // bounce return index
+    const double e{0.7};          // bounce return index
     double v{0.0};                // Initial speed [m/s]
     double h{4.0};                // initial height [m]
     double floor{550.0};          // Floor height [m]
@@ -38,8 +38,9 @@ int main(int argc, char *argv[])
     ball.setFillColor(ball_color);
     ball.setPosition((width / 2) - ball_radius, 0);
 
-    if (!font.loadFromFile("arial.ttf")) {
-            std::cerr << "Error loading font. Make sure the font file is in the 'fonts' directory." << std::endl;
+    if (!font.loadFromFile("arial.ttf"))
+    {
+        std::cerr << "Error loading font. Make sure the font file is in the 'fonts' directory." << std::endl;
     }
 
     speed_text.setFont(font);
@@ -70,11 +71,19 @@ int main(int argc, char *argv[])
             }
         }
 
+        // Get dt
         double dt = clock.restart().asSeconds();
 
         // Calculate velocity
         v += g * dt; // v = v0 + g * t
 
+        // Stops object if reached the floor with small speed
+        if (((ball.getPosition().y + ball_radius * 2) >= floor) && (abs(v) < 0.01))
+        {
+            v = 0.0;
+        }
+
+        // Move object
         ball.move(0, v * dt * scaling_factor);
 
         if ((ball.getPosition().y + ball_radius * 2) >= floor)
@@ -83,11 +92,6 @@ int main(int argc, char *argv[])
 
             // Invert velocity with return index e
             v = -v * e;
-
-            // Stop
-            if(abs(v) < 0.01){
-                v = 0.0;
-            }
         }
 
         speed_text.setString(std::to_string(v) + " m/s");
