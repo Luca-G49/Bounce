@@ -13,17 +13,18 @@ int main(int argc, char *argv[])
     // Store data in pre-defined variable
     constexpr int width{800};
     constexpr int height{600};
-    constexpr float ball_radius{40.f};
+    constexpr float ball_radius{10.f};
     const std::string title{"Bounce"};
     sf::Color ball_color{sf::Color::Green};
     sf::Color background_color{sf::Color::Black};
 
-    const double g{9.8};          // Gravitational acceleration [m/s²]
-    const double e{0.7};          // bounce return index
-    double v{0.0};                // Initial speed [m/s]
-    double h{4.0};                // initial height [m]
+    const double g{9.8}; // Gravitational acceleration [m/s²]
     double floor{550.0};          // Floor height [m]
     double scaling_factor{100.0}; // Pixel for meter
+
+    std::vector<sf::CircleShape> balls; // Balls container
+    std::vector<double> e;  // Bounce return index
+    std::vector<double> v;  // Initial speed [m/s]
 
     sf::RenderWindow window(sf::VideoMode(width, height), title);
     sf::Font font;
@@ -33,20 +34,6 @@ int main(int argc, char *argv[])
     sf::RectangleShape base(sf::Vector2f(width, 50));
     base.setFillColor(sf::Color::Red);
     base.setPosition(0, floor);
-
-    sf::CircleShape ball(ball_radius);
-    ball.setFillColor(ball_color);
-    ball.setPosition((width / 2) - ball_radius, 0);
-
-    if (!font.loadFromFile("arial.ttf"))
-    {
-        std::cerr << "Error loading font. Make sure the font file is in the 'fonts' directory." << std::endl;
-    }
-
-    speed_text.setFont(font);
-    speed_text.setCharacterSize(16);
-    speed_text.setFillColor(sf::Color::White);
-    speed_text.setPosition(0, 0);
 
     // Timer setup
     sf::Clock clock;
@@ -69,37 +56,57 @@ int main(int argc, char *argv[])
                     window.close();
                 }
             }
+            // Mouse events
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
+                // If the left button is pressed
+                if (event.mouseButton.button == sf::Mouse::Left)
+                {
+                    sf::CircleShape ball(ball_radius);
+                    ball.setFillColor(ball_color);
+                    ball.setPosition(event.mouseButton.x - ball_radius, event.mouseButton.y - ball_radius);
+                    balls.push_back(ball);
+
+                    e.push_back(0.5);
+                    v.push_back(0.0);
+
+                    std::cout << "Spawn" << "\n";
+                }
+            }
         }
 
         // Get dt
         double dt = clock.restart().asSeconds();
 
-        // Calculate velocity
-        v += g * dt; // v = v0 + g * t
-
-        // Stops object if reached the floor with small speed
-        if (((ball.getPosition().y + ball_radius * 2) >= floor) && (abs(v) < 0.01))
+        for (int i = 0; i < balls.size(); i++)
         {
-            v = 0.0;
+            // Calculate velocity
+            v[i] += g * dt; // v = v0 + g * t
+
+            // Stops object if reached the floor with small speed
+            if (((balls[i].getPosition().y + ball_radius * 2) >= floor) && (abs(v[i]) < 0.01))
+            {
+                v[i] = 0.0;
+            }
+
+            // Move object
+            balls[i].move(0, v[i] * dt * scaling_factor);
+
+            if ((balls[i].getPosition().y + ball_radius * 2) >= floor)
+            {
+                balls[i].setPosition(balls[i].getPosition().x, floor - ball_radius * 2);
+
+                // Invert velocity with return index e
+                v[i] = -v[i] * e[i];
+            }
         }
-
-        // Move object
-        ball.move(0, v * dt * scaling_factor);
-
-        if ((ball.getPosition().y + ball_radius * 2) >= floor)
-        {
-            ball.setPosition(ball.getPosition().x, floor - ball_radius * 2);
-
-            // Invert velocity with return index e
-            v = -v * e;
-        }
-
-        speed_text.setString(std::to_string(v) + " m/s");
 
         window.clear(background_color);
-        window.draw(ball);
+        for (size_t i{0}; i < balls.size(); ++i)
+        {
+            window.draw(balls[i]);
+        }
         window.draw(base);
-        window.draw(speed_text);
         window.display();
     }
 
