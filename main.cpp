@@ -19,24 +19,36 @@ int main(int argc, char *argv[])
     sf::Color background_color{sf::Color::Black};
 
     const double g{9.8};          // Gravitational acceleration [m/s²]
-    const double e{0.8};          // bounce return index
+    const double e{0.5};          // bounce return index
     double v{0.0};                // Initial speed [m/s]
     double h{4.0};                // initial height [m]
+    double floor{550.0};          // Floor height [m]
     double scaling_factor{100.0}; // Pixel for meter
 
     sf::RenderWindow window(sf::VideoMode(width, height), title);
+    sf::Font font;
+    sf::Text speed_text;
+    sf::Text height_text;
 
     sf::RectangleShape base(sf::Vector2f(width, 50));
     base.setFillColor(sf::Color::Red);
-    base.setPosition(0, 550);
+    base.setPosition(0, floor);
 
     sf::CircleShape ball(ball_radius);
     ball.setFillColor(ball_color);
     ball.setPosition((width / 2) - ball_radius, 0);
 
+    if (!font.loadFromFile("arial.ttf")) {
+            std::cerr << "Error loading font. Make sure the font file is in the 'fonts' directory." << std::endl;
+    }
+
+    speed_text.setFont(font);
+    speed_text.setCharacterSize(16);
+    speed_text.setFillColor(sf::Color::White);
+    speed_text.setPosition(0, 0);
+
     // Timer setup
     sf::Clock clock;
-    constexpr float interval{1.0f}; // every 50 milliseconds
 
     while (window.isOpen())
     {
@@ -58,30 +70,32 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Timer based movement
-        /*if (clock.getElapsedTime().asMilliseconds() > interval)
+        double dt = clock.restart().asSeconds();
+
+        // Calculate velocity
+        v += g * dt; // v = v0 + g * t
+
+        ball.move(0, v * dt * scaling_factor);
+
+        if ((ball.getPosition().y + ball_radius * 2) >= floor)
         {
-            v += g * scaling_factor * interval / 1000; // v = v0 + g * t
-            if ((ball.getPosition().y + ball_radius * 2) < 550.0f){
-                ball.move(0.0,v * interval / 1000.0);
+            ball.setPosition(ball.getPosition().x, floor - ball_radius * 2);
+
+            // Invert velocity with return index e
+            v = -v * e;
+
+            // Stop
+            if(abs(v) < 0.01){
+                v = 0.0;
             }
-
-            clock.restart();
-        }*/
-
-        int dt = clock.getElapsedTime().asMicroseconds();
-
-        if ((ball.getPosition().y + ball_radius * 2) < 550.0f)
-        {
-            v += g * dt; // v = v0 + g * t
-            ball.move(0.0, v * dt / scaling_factor);
         }
 
-        clock.restart();
+        speed_text.setString(std::to_string(v) + " m/s");
 
         window.clear(background_color);
         window.draw(ball);
         window.draw(base);
+        window.draw(speed_text);
         window.display();
     }
 
